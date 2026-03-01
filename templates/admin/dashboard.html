@@ -1,0 +1,148 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2 class="mb-4 text-primary fw-bold"><i class="fas fa-user-shield me-2"></i>Admin Dashboard</h2>
+
+<!-- Summary Cards -->
+<div class="row mb-5">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white border-0 shadow">
+            <div class="card-body py-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="card-title opacity-75 fw-normal mb-1">Students</h5>
+                    <h2 class="display-6 fw-bold mb-0">{{ total_students }}</h2>
+                </div>
+                <i class="fas fa-users fa-3x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white border-0 shadow">
+            <div class="card-body py-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="card-title opacity-75 fw-normal mb-1">Companies</h5>
+                    <h2 class="display-6 fw-bold mb-0">{{ total_companies }}</h2>
+                </div>
+                <i class="fas fa-building fa-3x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white border-0 shadow">
+            <div class="card-body py-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="card-title opacity-75 fw-normal mb-1">Drives</h5>
+                    <h2 class="display-6 fw-bold mb-0">{{ total_drives }}</h2>
+                </div>
+                <i class="fas fa-briefcase fa-3x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark border-0 shadow">
+            <div class="card-body py-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="card-title opacity-75 fw-normal mb-1">Applications</h5>
+                    <h2 class="display-6 fw-bold mb-0">{{ total_applications }}</h2>
+                </div>
+                <i class="fas fa-file-alt fa-3x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Pending Companies -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div
+                class="card-header bg-white border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-building me-2 text-warning"></i>Pending Companies
+                </h5>
+                <span class="badge bg-warning rounded-pill">{{ pending_companies|length }} Pending</span>
+            </div>
+            <div class="card-body">
+                {% if pending_companies %}
+                <ul class="list-group list-group-flush align-items-stretch">
+                    {% for company in pending_companies %}
+                    <li
+                        class="list-group-item px-0 py-3 border-bottom d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ company.company_name }}</h6>
+                            <small class="text-muted"><i class="fas fa-globe me-1"></i>{{ company.website or 'N/A' }} |
+                                HR: {{ company.hr_contact }}</small>
+                        </div>
+                        <form method="POST" action="{{ url_for('admin.approve_company', profile_id=company.id) }}"
+                            class="d-flex gap-2">
+                            <button type="submit" name="action" value="approve"
+                                class="btn btn-sm btn-success rounded-circle shadow-sm" title="Approve"><i
+                                    class="fas fa-check"></i></button>
+                            <button type="submit" name="action" value="reject"
+                                class="btn btn-sm btn-danger rounded-circle shadow-sm" title="Reject"><i
+                                    class="fas fa-times"></i></button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-center text-muted p-4">
+                    <i class="fas fa-check-circle fa-2x mb-2 text-success opacity-50"></i>
+                    <p class="mb-0">No pending companies.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Drives -->
+    <div class="col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div
+                class="card-header bg-white border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-briefcase me-2 text-primary"></i>Pending Drives</h5>
+                <span class="badge bg-primary rounded-pill">{{ pending_drives|length }} Pending</span>
+            </div>
+            <div class="card-body">
+                {% if pending_drives %}
+                <ul class="list-group list-group-flush align-items-stretch">
+                    {% for drive in pending_drives %}
+                    <li
+                        class="list-group-item px-0 py-3 border-bottom d-flex justify-content-between align-items-start flex-column">
+                        <div class="w-100 d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h6 class="mb-0 fw-bold">{{ drive.job_title }}</h6>
+                                <span class="badge bg-light text-dark border">{{ drive.company.company_name }}</span>
+                            </div>
+                            <form method="POST" action="{{ url_for('admin.approve_drive', drive_id=drive.id) }}"
+                                class="d-flex gap-2">
+                                <button type="submit" name="action" value="approve"
+                                    class="btn btn-sm btn-success rounded-circle shadow-sm" title="Approve"><i
+                                        class="fas fa-check"></i></button>
+                                <button type="submit" name="action" value="reject"
+                                    class="btn btn-sm btn-danger rounded-circle shadow-sm" title="Reject"><i
+                                        class="fas fa-times"></i></button>
+                            </form>
+                        </div>
+                        <small class="text-muted text-truncate w-100 d-inline-block">{{ drive.job_description }}</small>
+                        <small class="text-danger fw-bold mt-1"><i class="fas fa-clock me-1"></i>Deadline: {{
+                            drive.deadline.strftime('%Y-%m-%d') }}</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="text-center text-muted p-4">
+                    <i class="fas fa-check-circle fa-2x mb-2 text-success opacity-50"></i>
+                    <p class="mb-0">No pending drives.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12 text-center">
+        <!-- Optional Chart Space if required -->
+    </div>
+</div>
+{% endblock %}

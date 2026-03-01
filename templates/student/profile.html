@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-block p-4 mb-3 position-relative">
+                        <i class="fas fa-user text-primary fa-3x"></i>
+                        <div class="position-absolute bottom-0 end-0 bg-white p-1 rounded-circle shadow-sm"
+                            style="transform: translate(25%, 25%);">
+                            <i class="fas fa-pencil-alt text-primary small p-1"></i>
+                        </div>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">My Profile</h3>
+                    <p class="text-muted small"><i class="fas fa-id-card me-1"></i>Student ID: #{{
+                        current_user.student_profile.id }}</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('student.profile') }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label text-muted fw-semibold"><i
+                                class="fas fa-user-circle me-1 text-primary"></i>Full Name</label>
+                        <input type="text" class="form-control bg-light border-0 shadow-none p-3" name="name"
+                            value="{{ current_user.student_profile.name }}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-muted fw-semibold"><i
+                                class="fas fa-address-book me-1 text-primary"></i>Contact Information</label>
+                        <input type="text" class="form-control bg-light border-0 shadow-none p-3" name="contact"
+                            value="{{ current_user.student_profile.contact }}" required>
+                    </div>
+
+                    <hr class="text-muted opacity-25 my-4">
+
+                    <div class="mb-5">
+                        <label class="form-label text-muted fw-semibold"><i
+                                class="fas fa-file-pdf me-1 text-danger"></i>Resume Document</label>
+
+                        {% if current_user.student_profile.resume_filename %}
+                        <div
+                            class="d-flex align-items-center mb-3 p-3 bg-light rounded-3 border-start border-4 border-info">
+                            <i class="fas fa-check-circle text-success fa-2x me-3"></i>
+                            <div class="flex-grow-1">
+                                <p class="mb-0 fw-bold text-dark">Current Resume Uploaded</p>
+                                <a href="{{ url_for('static', filename='uploads/' + current_user.student_profile.resume_filename) }}"
+                                    target="_blank" class="small text-decoration-none">
+                                    <i class="fas fa-external-link-alt me-1"></i>View File
+                                </a>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning border-0 shadow-sm d-flex align-items-center mb-3">
+                            <i class="fas fa-exclamation-triangle fa-2x me-3 opacity-50"></i>
+                            <div>
+                                <p class="mb-0 fw-bold">No Resume Found</p>
+                                <small>Please upload your resume to complete your profile.</small>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <input class="form-control bg-light border-0 shadow-none p-2" type="file" name="resume"
+                            accept=".pdf,.doc,.docx">
+                        <small class="text-muted ms-1 mt-1 d-block"><i class="fas fa-info-circle me-1"></i>Uploading a
+                            new file will replace the current resume.</small>
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm fw-bold"><i
+                                class="fas fa-save me-2"></i>Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

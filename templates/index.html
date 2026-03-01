@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row align-items-center mt-5">
+    <div class="col-md-6 text-center text-md-start">
+        <h1 class="display-4 fw-bold mb-4 text-primary">Campus Recruitment <br> Simplified</h1>
+        <p class="lead text-muted mb-4">Connect students with top companies seamlessly through our unified placement
+            portal platform designed for intuitive management of applications and recruitment drives.</p>
+        <div class="d-flex justify-content-center justify-content-md-start gap-3">
+            <a href="{{ url_for('auth.register_student') }}" class="btn btn-primary btn-lg shadow-sm px-4 py-2"
+                style="border-radius: 30px;">
+                <i class="fas fa-user-graduate me-2"></i>I'm a Student
+            </a>
+            <a href="{{ url_for('auth.register_company') }}"
+                class="btn btn-outline-secondary btn-lg shadow-sm px-4 py-2" style="border-radius: 30px;">
+                <i class="fas fa-building me-2"></i>I'm a Company
+            </a>
+        </div>
+        <p class="mt-4 text-muted"><small>Already have an account? <a href="{{ url_for('auth.login') }}"
+                    class="text-decoration-none fw-bold">Login here</a></small></p>
+    </div>
+    <div class="col-md-6 d-none d-md-block text-center mt-5 mt-md-0">
+        <!-- Generative placeholder or styling -->
+        <div class="p-5 bg-white rounded-circle shadow d-inline-block"
+            style="width: 400px; height: 400px; position: relative;">
+            <i class="fas fa-briefcase text-primary shadow"
+                style="font-size: 8rem; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+            <i class="fas fa-file-alt text-warning shadow-sm"
+                style="font-size: 4rem; position: absolute; top: 20%; left: 15%;"></i>
+            <i class="fas fa-check-circle text-success shadow-sm"
+                style="font-size: 4rem; position: absolute; bottom: 20%; right: 15%;"></i>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5 pt-5 text-center">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm p-4 hover-shadow transition">
+            <div class="card-body">
+                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+                    <i class="fas fa-shield-alt text-primary fa-2x"></i>
+                </div>
+                <h4 class="fw-bold">Secure Access</h4>
+                <p class="text-muted">Role-based authenticated portals for administrators, corporate HRs, and students.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm p-4 hover-shadow transition">
+            <div class="card-body">
+                <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+                    <i class="fas fa-chart-line text-success fa-2x"></i>
+                </div>
+                <h4 class="fw-bold">Real-time Tracking</h4>
+                <p class="text-muted">Monitor placement drives, track applicant statuses, and manage the entire
+                    lifecycle in one place.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 border-0 shadow-sm p-4 hover-shadow transition">
+            <div class="card-body">
+                <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
+                    <i class="fas fa-bolt text-warning fa-2x"></i>
+                </div>
+                <h4 class="fw-bold">Instant Updates</h4>
+                <p class="text-muted">Get immediate feedback on application shortlistings, rejections, or selections
+                    without delay.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

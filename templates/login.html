@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-5">
+                <h3 class="card-title text-center text-primary fw-bold mb-4">Welcome Back</h3>
+
+                <form method="POST" action="{{ url_for('auth.login') }}">
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i
+                                    class="fas fa-user text-muted"></i></span>
+                            <input type="text" class="form-control border-start-0 bg-light" name="username" required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i
+                                    class="fas fa-lock text-muted"></i></span>
+                            <input type="password" class="form-control border-start-0 bg-light" name="password"
+                                required>
+                        </div>
+                    </div>
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">Login</button>
+                    </div>
+                    <div class="text-center mt-4">
+                        <p class="text-muted small">Don't have an account?</p>
+                        <a href="{{ url_for('auth.register_student') }}"
+                            class="text-decoration-none fw-bold me-3 text-primary">Sign up as Student</a>
+                        <span class="text-muted">|</span>
+                        <a href="{{ url_for('auth.register_company') }}"
+                            class="text-decoration-none fw-bold ms-3 text-secondary">Sign up as Company</a>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

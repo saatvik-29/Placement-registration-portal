@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-5">
+    <h2 class="text-primary fw-bold m-0"><i class="fas fa-building me-2"></i>Available Openings</h2>
+    <span class="badge bg-primary bg-opacity-10 text-primary border px-3 py-2 rounded-pill shadow-sm"><i
+            class="fas fa-info-circle me-1"></i>Showing approved drives only</span>
+</div>
+
+<div class="row">
+    {% for drive in drives %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 shadow-sm border-0 position-relative hover-shadow transition">
+            <!-- decorative border left -->
+            <div class="position-absolute top-0 start-0 h-100 bg-primary" style="width: 4px;"></div>
+
+            <div class="card-body p-4 ms-2">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h4 class="card-title fw-bold text-dark mb-1">{{ drive.job_title }}</h4>
+                        <p class="text-primary fw-semibold mb-0"><i class="fas fa-briefcase me-2 text-muted"></i>{{
+                            drive.company.company_name }}</p>
+                    </div>
+                </div>
+
+                <hr class="text-muted opacity-25">
+
+                <div class="mb-4">
+                    <h6 class="text-muted fw-bold small text-uppercase mb-2">Job Description</h4>
+                        <p class="card-text small text-dark opacity-75 line-clamp-3">{{ drive.job_description }}</p>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="text-muted fw-bold small text-uppercase mb-2">Eligibility</h4>
+                        <p class="card-text small text-dark opacity-75 line-clamp-2"><i
+                                class="fas fa-check-circle text-success me-1"></i>{{ drive.eligibility }}</p>
+                </div>
+
+                <div class="d-flex align-items-center mb-2 bg-light p-3 rounded-3">
+                    <div class="me-3 bg-white p-2 rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px;">
+                        <i class="fas fa-calendar-times text-danger"></i>
+                    </div>
+                    <div>
+                        <p class="mb-0 text-muted small fw-bold text-uppercase">Application Deadline</p>
+                        <p class="mb-0 fw-bold text-danger">{{ drive.deadline.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="card-footer bg-white border-top-0 pt-0 pb-4 px-4 ms-2 d-flex justify-content-between align-items-center">
+                <a href="{{ drive.company.website }}" target="_blank"
+                    class="text-decoration-none small fw-semibold text-secondary"><i
+                        class="fas fa-globe me-1"></i>Company Site</a>
+
+                <form method="POST" action="{{ url_for('student.apply_drive', drive_id=drive.id) }}" class="d-inline">
+                    {% if drive.id in applied_drives %}
+                    <button type="button" class="btn btn-secondary rounded-pill px-4 shadow-sm fw-bold" disabled>
+                        <i class="fas fa-check me-2"></i>Applied
+                    </button>
+                    {% else %}
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold hover-lift">
+                        <i class="fas fa-paper-plane me-2"></i>Apply Now
+                    </button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% if not drives %}
+    <div class="col-12 text-center py-5 mt-4">
+        <i class="fas fa-search fa-4x text-muted opacity-25 mb-4 d-block"></i>
+        <h4 class="text-muted fw-bold">No Active Drives</h4>
+        <p class="text-muted">There are currently no approved placement drives available for application. Please check
+            back later.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

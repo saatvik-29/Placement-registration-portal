@@ -1,0 +1,58 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4 p-md-5">
+                <h3 class="mb-4 text-primary fw-bold"><i class="fas fa-edit me-2"></i>Edit Placement Drive</h3>
+
+                <form method="POST" action="{{ url_for('company.edit_drive', drive_id=drive.id) }}">
+                    <div class="mb-3">
+                        <label class="form-label text-muted fw-semibold">Job Title</label>
+                        <input type="text" class="form-control bg-light border-0 shadow-none p-3" name="job_title"
+                            value="{{ drive.job_title }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted fw-semibold">Job Description</label>
+                        <textarea class="form-control bg-light border-0 shadow-none p-3" name="job_description" rows="4"
+                            required>{{ drive.job_description }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted fw-semibold">Eligibility Criteria</label>
+                        <textarea class="form-control bg-light border-0 shadow-none p-3" name="eligibility" rows="3"
+                            required>{{ drive.eligibility }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-muted fw-semibold">Application Deadline</label>
+                        <input type="date" class="form-control bg-light border-0 shadow-none p-3" name="deadline"
+                            value="{{ drive.deadline.strftime('%Y-%m-%d') }}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-muted fw-semibold">Drive Status</label>
+                        <select class="form-select bg-light border-0 shadow-none p-3" name="status">
+                            <option value="{{ drive.status }}" selected>Current: {{ drive.status|capitalize }}</option>
+                            {% if drive.status != 'closed' %}
+                            <option value="closed">Close Drive</option>
+                            {% endif %}
+                        </select>
+                        <small class="text-muted"><i class="fas fa-info-circle me-1"></i>Closing a drive stops further
+                            applications.</small>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-5">
+                        <a href="{{ url_for('company.dashboard') }}"
+                            class="btn btn-light rounded-pill px-4 shadow-sm text-muted">Cancel</a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm fw-bold">Update
+                            Drive</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
