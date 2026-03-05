@@ -226,43 +226,24 @@ The base Jinja2 template using Bootstrap 5. All other templates will `extend` th
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+<!-- NOTE (Step 4): Using hardcoded paths here because blueprints are not registered yet.
+     After Step 6, replace all href paths with url_for() calls as shown in the Step 6 note. -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
   <div class="container">
-    <a class="navbar-brand" href="{{ url_for('index') }}">Campus Connect</a>
+    <a class="navbar-brand" href="/">Campus Connect</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        {% if current_user.is_authenticated %}
-            {% if current_user.role == 'admin' %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.manage_users') }}">Manage Users</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.all_drives') }}">All Drives</a></li>
-            {% elif current_user.role == 'company' %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('company.dashboard') }}">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('company.create_drive') }}">Create Drive</a></li>
-            {% elif current_user.role == 'student' %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('student.dashboard') }}">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('student.available_drives') }}">Available Drives</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('student.profile') }}">Profile</a></li>
-            {% endif %}
-            <li class="nav-item">
-                <span class="nav-link text-light fw-bold mx-2">Hi, {{ current_user.username }}</span>
-            </li>
-            <li class="nav-item">
-                <a class="btn btn-outline-light ms-2" href="{{ url_for('auth.logout') }}">Logout</a>
-            </li>
-        {% else %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">Register</a>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="{{ url_for('auth.register_student') }}">As Student</a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('auth.register_company') }}">As Company</a></li>
-                </ul>
-            </li>
-        {% endif %}
+        <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">Register</a>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="/register/student">As Student</a></li>
+                <li><a class="dropdown-item" href="/register/company">As Company</a></li>
+            </ul>
+        </li>
       </ul>
     </div>
   </div>
@@ -298,8 +279,9 @@ The base Jinja2 template using Bootstrap 5. All other templates will `extend` th
     <div class="p-5 mb-4 bg-light rounded-3">
         <h1 class="display-5 fw-bold">Campus Recruitment Portal</h1>
         <p class="col-md-8 fs-4">Connect students with top companies seamlessly.</p>
-        <a href="{{ url_for('auth.register_student') }}" class="btn btn-primary btn-lg me-2">I'm a Student</a>
-        <a href="{{ url_for('auth.register_company') }}" class="btn btn-outline-secondary btn-lg">I'm a Company</a>
+        <!-- Hardcoded paths for now — updated to url_for() in Step 6 -->
+        <a href="/register/student" class="btn btn-primary btn-lg me-2">I'm a Student</a>
+        <a href="/register/company" class="btn btn-outline-secondary btn-lg">I'm a Company</a>
     </div>
 </div>
 {% endblock %}
@@ -433,6 +415,13 @@ app.register_blueprint(auth_bp)
 ## Step 6: Authentication Templates
 
 > ℹ️ `layout.html` and `index.html` were already created in **Step 4**. This step only adds the auth form templates that the `auth_bp` blueprint (registered in Step 5) needs to render.
+
+> ⚠️ **Update `layout.html` and `index.html` now**: Because the `auth` blueprint is now registered, replace the hardcoded `href` paths in `layout.html` and `index.html` with proper `url_for()` calls:
+> - `href="/login"` → `href="{{ url_for('auth.login') }}"`
+> - `href="/register/student"` → `href="{{ url_for('auth.register_student') }}"`
+> - `href="/register/company"` → `href="{{ url_for('auth.register_company') }}"`
+> - navbar brand `href="/"` → `href="{{ url_for('index') }}"`
+> - Also update the `{% if current_user.is_authenticated %}` block in `layout.html` to the full role-based navbar with `url_for()` for logout. (The full final `layout.html` is shown in Step 10 for reference.)
 
 **1. Create `templates/login.html`:**
 
