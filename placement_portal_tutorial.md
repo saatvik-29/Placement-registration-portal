@@ -134,7 +134,9 @@ class Application(db.Model):
 
 ---
 
-## Step 4: Core Application Factory
+## Step 4: Core Application Factory + Base Templates
+
+> ⚠️ **Important**: We create `app.py` AND the base templates (`layout.html` + `index.html`) **in the same step** so the app is immediately runnable after this commit. `app.py` renders `index.html` on the `/` route, so the template must exist before you run the server.
 
 **1. Create `views/utils.py`:**
 Add a custom decorator for role-based access control.
@@ -158,42 +160,39 @@ def role_required(role):
 ```
 
 **2. Create `app.py`:**
-This is the main entry point that initializes Flask, creates the database tables programmatically, and injects a default admin user.
-*(Note: Route blueprints will be created in the next steps)*
+This is the main entry point. Blueprints will be registered in later steps — the `# placeholder` comments mark where they will go.
 
 ```python
-from flask import Flask, render_template, redirect, url_for, flash
+from flask import Flask, render_template
 from config import Config
 from extensions import db, login_manager, bcrypt
-from models import User, StudentProfile, CompanyProfile, PlacementDrive, Application
+from models import User
 import os
-
-# We will import views here later
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    
+
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    
+
     db.init_app(app)
     login_manager.init_app(app)
     bcrypt.init_app(app)
-    
+
     login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'info'
-    
+
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
-        
-    # We will register blueprints here later
-    
+
+    # --- Blueprints registered here in later steps ---
+
     @app.route('/')
     def index():
         return render_template('index.html')
-        
-    # Programmatic database creation and default admin injection
+
+    # Programmatic DB creation + default admin
     with app.app_context():
         db.create_all()
         admin_user = User.query.filter_by(role='admin').first()
@@ -203,7 +202,7 @@ def create_app():
             db.session.add(admin)
             db.session.commit()
             print("Admin user created: admin / admin123")
-            
+
     return app
 
 if __name__ == '__main__':
@@ -211,7 +210,104 @@ if __name__ == '__main__':
     app.run(debug=True)
 ```
 
-> 💡 **Commit #4**: `Setup Flask app factory, utils, and programmatic database generation`
+**3. Create `templates/layout.html`:**
+The base Jinja2 template using Bootstrap 5. All other templates will `extend` this.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Placement Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Add your custom CSS here later -->
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="{{ url_for('index') }}">Campus Connect</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        {% if current_user.is_authenticated %}
+            {% if current_user.role == 'admin' %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.manage_users') }}">Manage Users</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.all_drives') }}">All Drives</a></li>
+            {% elif current_user.role == 'company' %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('company.dashboard') }}">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('company.create_drive') }}">Create Drive</a></li>
+            {% elif current_user.role == 'student' %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('student.dashboard') }}">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('student.available_drives') }}">Available Drives</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('student.profile') }}">Profile</a></li>
+            {% endif %}
+            <li class="nav-item">
+                <span class="nav-link text-light fw-bold mx-2">Hi, {{ current_user.username }}</span>
+            </li>
+            <li class="nav-item">
+                <a class="btn btn-outline-light ms-2" href="{{ url_for('auth.logout') }}">Logout</a>
+            </li>
+        {% else %}
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">Register</a>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{{ url_for('auth.register_student') }}">As Student</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('auth.register_company') }}">As Company</a></li>
+                </ul>
+            </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+```
+
+**4. Create `templates/index.html`:**
+
+```html
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="p-5 mb-4 bg-light rounded-3">
+        <h1 class="display-5 fw-bold">Campus Recruitment Portal</h1>
+        <p class="col-md-8 fs-4">Connect students with top companies seamlessly.</p>
+        <a href="{{ url_for('auth.register_student') }}" class="btn btn-primary btn-lg me-2">I'm a Student</a>
+        <a href="{{ url_for('auth.register_company') }}" class="btn btn-outline-secondary btn-lg">I'm a Company</a>
+    </div>
+</div>
+{% endblock %}
+```
+
+> 💡 **Commit #4**: `Setup Flask app factory, utils, base layout, and landing page`
+
+> 🚀 **Run to verify**: `python app.py` → visit `http://localhost:5000`. You should see the landing page. The Login/Register links in the navbar will 404 for now (blueprints come next) — that is expected.
 
 ---
 
@@ -330,120 +426,97 @@ app.register_blueprint(auth_bp)
 
 > 💡 **Commit #5**: `Added authentication and registration backend logic`
 
+> 🚀 **Run to verify**: `python app.py` → the server starts. Login/Register routes are registered now but the form templates don't exist yet — they're added in Step 6.
+
 ---
 
-## Step 6: Frontend Layout & Public Templates
+## Step 6: Authentication Templates
 
-**1. Create `templates/layout.html`:**
-The base Jinja template utilizing Bootstrap 5.
+> ℹ️ `layout.html` and `index.html` were already created in **Step 4**. This step only adds the auth form templates that the `auth_bp` blueprint (registered in Step 5) needs to render.
 
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Placement Portal</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        body { padding-top: 70px; background-color: #f8f9fa; }
-        .navbar-brand { font-weight: bold; }
-        .card { box-shadow: 0 4px 6px rgba(0,0,0,.1); margin-bottom: 20px; }
-    </style>
-</head>
-<body>
-
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
-  <div class="container">
-    <a class="navbar-brand" href="{{ url_for('index') }}">Campus Connect</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
-        {% if current_user.is_authenticated %}
-            {% if current_user.role == 'admin' %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.manage_users') }}">Manage Users</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.all_drives') }}">All Drives</a></li>
-            {% elif current_user.role == 'company' %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('company.dashboard') }}">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('company.create_drive') }}">Create Drive</a></li>
-            {% elif current_user.role == 'student' %}
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('student.dashboard') }}">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('student.available_drives') }}">Available Drives</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('student.profile') }}">Profile</a></li>
-            {% endif %}
-            <li class="nav-item">
-                <span class="nav-link text-light fw-bold mx-2">Hi, {{ current_user.username }}</span>
-            </li>
-            <li class="nav-item">
-                <a class="btn btn-outline-light ms-2" href="{{ url_for('auth.logout') }}">Logout</a>
-            </li>
-        {% else %}
-            <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">Register</a>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="{{ url_for('auth.register_student') }}">As Student</a></li>
-                    <li><a class="dropdown-item" href="{{ url_for('auth.register_company') }}">As Company</a></li>
-                </ul>
-            </li>
-        {% endif %}
-      </ul>
-    </div>
-  </div>
-</nav>
-
-<div class="container">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-
-    {% block content %}{% endblock %}
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-```
-
-**2. Create Landing Page (`templates/index.html`):**
+**1. Create `templates/login.html`:**
 
 ```html
 {% extends "layout.html" %}
-
 {% block content %}
-<div class="row align-items-center mt-5">
-    <div class="col-md-6 text-center text-md-start">
-        <h1 class="display-4 fw-bold mb-4 text-primary">Campus Recruitment <br> Simplified</h1>
-        <p class="lead text-muted mb-4">Connect students with top companies seamlessly.</p>
-        <div class="d-flex justify-content-center justify-content-md-start gap-3">
-            <a href="{{ url_for('auth.register_student') }}" class="btn btn-primary btn-lg shadow-sm px-4 py-2" style="border-radius: 30px;">I'm a Student</a>
-            <a href="{{ url_for('auth.register_company') }}" class="btn btn-outline-secondary btn-lg shadow-sm px-4 py-2" style="border-radius: 30px;">I'm a Company</a>
+<div class="row justify-content-center mt-5">
+  <div class="col-md-5">
+    <div class="card p-4">
+      <h3 class="mb-3">Login</h3>
+      <form method="POST">
+        <div class="mb-3">
+          <label class="form-label">Username</label>
+          <input type="text" name="username" class="form-control" required>
         </div>
-    </div>
-    <div class="col-md-6 d-none d-md-block text-center mt-5 mt-md-0">
-        <div class="p-5 bg-white rounded-circle shadow d-inline-block" style="width: 400px; height: 400px; position: relative;">
-            <i class="fas fa-briefcase text-primary shadow" style="font-size: 8rem; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" required>
         </div>
+        <button type="submit" class="btn btn-primary w-100">Login</button>
+      </form>
     </div>
+  </div>
 </div>
 {% endblock %}
 ```
 
-**3. Create Login (`templates/login.html`), Student Register (`templates/register_student.html`), & Company Register (`templates/register_company.html`):**
-_Use standard Bootstrap 5 form structures mapping to the POST logic we wrote in `auth.py`_ (Inputs mapping to `username`, `password`, `name`, `contact`, `company_name`, `hr_contact`, `website`).
+**2. Create `templates/register_student.html`:**
 
-> 💡 **Commit #6**: `Added base layouts, landing page, and authentication forms`
+```html
+{% extends "layout.html" %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6">
+    <div class="card p-4">
+      <h3 class="mb-3">Register as Student</h3>
+      <form method="POST">
+        <div class="mb-3"><label class="form-label">Username</label>
+          <input type="text" name="username" class="form-control" required></div>
+        <div class="mb-3"><label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" required></div>
+        <div class="mb-3"><label class="form-label">Full Name</label>
+          <input type="text" name="name" class="form-control" required></div>
+        <div class="mb-3"><label class="form-label">Contact</label>
+          <input type="text" name="contact" class="form-control"></div>
+        <button type="submit" class="btn btn-primary w-100">Register</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+```
+
+**3. Create `templates/register_company.html`:**
+
+```html
+{% extends "layout.html" %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6">
+    <div class="card p-4">
+      <h3 class="mb-3">Register as Company</h3>
+      <form method="POST">
+        <div class="mb-3"><label class="form-label">Username</label>
+          <input type="text" name="username" class="form-control" required></div>
+        <div class="mb-3"><label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" required></div>
+        <div class="mb-3"><label class="form-label">Company Name</label>
+          <input type="text" name="company_name" class="form-control" required></div>
+        <div class="mb-3"><label class="form-label">HR Contact</label>
+          <input type="text" name="hr_contact" class="form-control"></div>
+        <div class="mb-3"><label class="form-label">Website</label>
+          <input type="text" name="website" class="form-control"></div>
+        <button type="submit" class="btn btn-primary w-100">Register</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+```
+
+> 💡 **Commit #6**: `Added authentication form templates (login, register student, register company)`
+
+> 🚀 **Run to verify**: `python app.py` → visit `http://localhost:5000/login`, `/register/student`, `/register/company`. Forms should render and submission should work.
 
 ---
 
@@ -576,6 +649,8 @@ app.register_blueprint(admin_bp, url_prefix='/admin')
 
 > 💡 **Commit #7**: `Added Admin role features: user moderation and drive approvals`
 
+> 🚀 **Run to verify**: `python app.py` → Login as `admin / admin123`. You should be redirected to `/admin/dashboard`.
+
 ---
 
 ## Step 8: Company Module
@@ -682,6 +757,8 @@ Construct Forms for creating (`templates/company/create_drive.html`) & editing (
 
 > 💡 **Commit #8**: `Built Company features: creating drives and adjusting applicant status`
 
+> 🚀 **Run to verify**: `python app.py` → Register a company, get approved by admin, then login and create a drive.
+
 ---
 
 ## Step 9: Student Module
@@ -766,6 +843,8 @@ app.register_blueprint(student_bp, url_prefix='/student')
 - `templates/student/profile.html`: Utilize `enctype="multipart/form-data"` in form to submit the resume properly.
 
 > 💡 **Commit #9**: `Added Student module: driving job application mechanics and profile setup`
+
+> 🚀 **Run to verify**: `python app.py` → Register as a student, login, and apply to an approved drive.
 
 ---
 
